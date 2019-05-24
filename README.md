@@ -23,9 +23,9 @@
 
 ### [索引](indexing/README.md)
 
-### 检索] (retriever/README.md)
+### [检索](retriever/README.md)
 
-### [CTR预估] (ctr/README.md)
-### [实验框架] (experience/README.md)
-### [服务发现] (discover/README.md)
-## [机器学习] (ml/README.md)
+### [CTR预估](ctr/README.md)
+### [实验框架](experience/README.md)
+### [服务发现](discover/README.md)
+## [机器学习](ml/README.md)
