@@ -354,6 +354,7 @@ C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<at
 ```
 
 ###6.2 thread
+
 [thread](https://zh.cppreference.com/w/cpp/thread/thread) 构造函数为 callback f，后面的不定参数是f的参数，具体如下
 ```
 template< class Function, class... Args > 
@@ -412,6 +413,20 @@ void thread_vector_init() {
 从原理上说，基本是将pthread_x 的接口按照C++的方式包装了一层，在C++11以前也有很多的类似thread类可以参考，标准只是更加规范化了而已。
 
 ### 6.3 lock
+
+如下讨论的lock和timed_lock在linux下是基于pthread_x的封装。
+[mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 对应于 pthread_mutex_unlock pthread_mutex_lock
+
+[recursive_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_mutex)  对应于 pthread_mutex_lock，但初始化属性PTHREAD_MUTEX_RECURSIVE。
+
+[shared_mutex](https://zh.cppreference.com/w/cpp/thread/shared_mutex) 对应于 pthread_rwlock 系列函数，表示读写锁。
+
+
+
+
+
+
+
 #### 6.3.1 mutex
 [mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 提供了对共享数据免受从多个线程同时访问的同步原语。
 
@@ -462,6 +477,7 @@ class ThreadSafeCounter {
 ```
 
 ### 6.4 timed_lock
+
 在lock的基础上，其有对应带超时版本的锁。
 
 [timed_mutex](https://zh.cppreference.com/w/cpp/thread/timed_mutex) 锁比 [mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 锁多了两个成员函数try_lock_for 和 try_lock_until。
@@ -482,7 +498,9 @@ void fireworks () {
 ```
 
 [shared_timed_mutex ](https://zh.cppreference.com/w/cpp/thread/shared_timed_mutex) 与 [recursive_timed_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_timed_mutex) 类似，不再赘述。
+
 ### 6.5 lock-guard
+
 在上面mutex的例子中已经介绍了用于管理锁声明周期的Guard，利用到了C++的 RAII，主要有如下类型
 [lock_guard](https://zh.cppreference.com/w/cpp/thread/lock_guard) 实现了 [BasicLockable](https://zh.cppreference.com/w/cpp/named_req/BasicLockable)，即lock & unlock接口，除了构造函数外没有其他member function，使用起来比较简单，初始化的时候必须bind一个mutex。
 
