@@ -255,11 +255,11 @@ std::uniform_real_distribution<double> distrReal(0,100); // Range: [0~100)
 std::poisson_distribution<int> distrP(1.0);  //  mean (double) 
 std::normal_distribution<double> distrN(10.0, 3.0);  // mean and standard deviation
 ```
-## 正则表达式 ##
+## 4正则表达式 ##
 正则表达式是一种用于在字符串中匹配模式的微型语言。
 
 
-##  时间相关 ###
+##  5. 时间相关 ###
 相关主要在chrono库，需要#include<chrono>，其所有实现均在std::chrono namespace下。
 chrono是一个模版库，使用简单，功能强大，只需要理解三个概念：duration、time_point、clock
 ### Durations
@@ -332,7 +332,7 @@ int main ()
 }
 ```
 
-##  多线程 ##
+## 6 多线程 ##
 
 C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<atomic>、\<condition_varible>、\<future>[五个部分](https://www.jianshu.com/p/81f0b071b3e0)。
 * \<atomic>：该头文主要声明了两个类, std::atomic 和 std::atomic_flag，另外还声明了一套 C 风格的原子类型和与 C 兼容的原子操作的函数。
@@ -342,7 +342,7 @@ C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<at
 * \<future>：该头文件主要声明了 std::promise, std::package_task 两个 Provider 类，以及 std::future 和 std::shared_future 两个 Future 类，另外还有一些与之相关的类型和函数，std::async() 函数就声明在此头文件中。
 
 
-### atomic
+### 6.1 atomic
 
 #### 内存模型
 
@@ -353,7 +353,7 @@ C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<at
 
 ```
 
-### thread
+###6.2 thread
 [thread](https://zh.cppreference.com/w/cpp/thread/thread) 构造函数为 callback f，后面的不定参数是f的参数，具体如下
 ```
 template< class Function, class... Args > 
@@ -387,7 +387,6 @@ void f2(int& n) {
   std::cout <<std::this_thread::get_id() <<"\t" <<n <<"\n";
 }
 void thread_array_init() {
-
   std::thread task_array[4];
   for(auto i = 0; i < 4; ++i) {
     task_array[i] = std::thread(f2, std::ref(i));
@@ -407,13 +406,13 @@ void thread_vector_init() {
 }
 ```
 
-在linux下编译的时候，需要链接-lpthread，否则会报未实现的错误。
+在linux下编译的时候，需要动态链接pthread，否则会报未实现的错误。
 
 
-从原理上说，基本是将pthread_x 的接口按照C++的方式包装了一层，在C++11以前也有很多的类似Thread类可以参考，标准只是更加规范化了而已。
+从原理上说，基本是将pthread_x 的接口按照C++的方式包装了一层，在C++11以前也有很多的类似thread类可以参考，标准只是更加规范化了而已。
 
-### lock
-#### mutex
+### 6.3 lock
+#### 6.3.1 mutex
 [mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 提供了对共享数据免受从多个线程同时访问的同步原语。
 
 通常不直接使用 std::mutex ，而通过 std::unique_lock 、 std::lock_guard 或 std::scoped_lock (C++17 起) 更加安全的方式管理其生命周期。
@@ -425,15 +424,13 @@ std::mutex g_pages_mutex;
 }
 ```
 
-#### recursive_mutex
+#### 6.3.2 recursive_mutex
 
-[recursive_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_mutex) 递归互斥锁是一个可锁的对象，就像互斥一样，但是允许同一个线程获得对互斥对象的多个级别的所有权，是为了解决 一个线程中可能在执行中需要再次获得锁，可能会导致死锁。
+[recursive_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_mutex) 递归互斥锁是一个可锁的对象，就像互斥一样，但是允许同一个线程获得对互斥对象的多个级别的所有权，是为了解决 一个线程中可能在执行中需要再次获得锁，可能会导致死锁的问题。
 
 根据这个问题[stdmutex-vs-stdrecursive-mutex-as-class-member](https://stackoverflow.com/questions/14498892/stdmutex-vs-stdrecursive-mutex-as-class-member) 下的回复，如果出现该情况，需要重新设计你的类。
 
-这其实是
-
-#### shared_mutex
+#### 6.3.3 shared_mutex
 [shared_mutex](https://zh.cppreference.com/w/cpp/thread/shared_mutex) 实际上是读写锁的封装，跟mutex一样，一般不直接使用它，通过 shared_lock 和  unique_lock 管理其周期。
 
 ```cpp
@@ -464,14 +461,13 @@ class ThreadSafeCounter {
 };
 ```
 
-### timed_lock
+### 6.4 timed_lock
 在lock的基础上，其有对应带超时版本的锁。
 
-[timed_mutex](https://zh.cppreference.com/w/cpp/thread/timed_mutex) 锁比较 mutex 锁多了两个成员函数try_lock_for 和 try_lock_until。
+[timed_mutex](https://zh.cppreference.com/w/cpp/thread/timed_mutex) 锁比 [mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 锁多了两个成员函数try_lock_for 和 try_lock_until。
 区别在于try_lock_for 传递一个时间间隔，try_lock_until 传递一个未来的时间点。
 ```cpp
 std::timed_mutex mtx;
-
 void fireworks () {
   // waiting to get a lock: each thread prints "-" every 200ms:
   while (!mtx.try_lock_for(std::chrono::milliseconds(2))) {
@@ -484,11 +480,10 @@ void fireworks () {
 }
 
 ```
-[shared_timed_mutex ](https://zh.cppreference.com/w/cpp/thread/shared_timed_mutex) 和
-[recursive_timed_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_timed_mutex) 类似，不再赘述。
-### lock-guard
-其实我们在上面mutex的例子中已经介绍了类型和用法。
-主要有
+
+[shared_timed_mutex ](https://zh.cppreference.com/w/cpp/thread/shared_timed_mutex) 与 [recursive_timed_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_timed_mutex) 类似，不再赘述。
+### 6.5 lock-guard
+在上面mutex的例子中已经介绍了用于管理锁声明周期的Guard，利用到了C++的 RAII，主要有如下类型
 [lock_guard](https://zh.cppreference.com/w/cpp/thread/lock_guard) 实现了 [BasicLockable](https://zh.cppreference.com/w/cpp/named_req/BasicLockable)，即lock & unlock接口，除了构造函数外没有其他member function，使用起来比较简单，初始化的时候必须bind一个mutex。
 
 [unique_lock](https://zh.cppreference.com/w/cpp/thread/unique_lock) 除了lock_guard的功能外，提供了更多的member_function，如延迟锁定、锁定的有时限尝试、递归锁定、所有权转移和与条件变量一同使用，需要付出更多的时间、性能成本。
@@ -508,7 +503,7 @@ void print_block (int n, char c) {
     }
 }
 ```
-scoped_lock是示例
+scoped_lock的示例
 ```cpp
 std::mutex mtx1;
 std::mutex mtx2;
@@ -524,11 +519,9 @@ std::mutex mtx2;
 
 ```
 
-### future | promise
+### 6.6 future | promise
 
 [promise](https://zh.cppreference.com/w/cpp/thread/promise)
-
-### clock
 
 
 
