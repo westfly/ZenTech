@@ -353,7 +353,7 @@ C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<at
 
 ```
 
-###6.2 thread
+### 6.2 thread
 
 [thread](https://zh.cppreference.com/w/cpp/thread/thread) 构造函数为 callback f，后面的不定参数是f的参数，具体如下
 ```
