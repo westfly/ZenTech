@@ -332,5 +332,206 @@ int main ()
 }
 ```
 
+##  多线程 ##
+
+C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<atomic>、\<condition_varible>、\<future>[五个部分](https://www.jianshu.com/p/81f0b071b3e0)。
+* \<atomic>：该头文主要声明了两个类, std::atomic 和 std::atomic_flag，另外还声明了一套 C 风格的原子类型和与 C 兼容的原子操作的函数。
+* \<thread>：该头文件主要声明了 std::thread 类，另外 std::this_thread 命名空间也在该头文件中。
+* \<mutex>：该头文件主要声明了与互斥量(mutex)相关的类，包括 std::mutex 系列类，std::lock_guard, std::unique_lock, 以及其他的类型和函数。
+* \<condition_variable>：该头文件主要声明了与条件变量相关的类，包括 std::condition_variable 和 std::condition_variable_any。
+* \<future>：该头文件主要声明了 std::promise, std::package_task 两个 Provider 类，以及 std::future 和 std::shared_future 两个 Future 类，另外还有一些与之相关的类型和函数，std::async() 函数就声明在此头文件中。
+
+
+### atomic
+
+#### 内存模型
+
+
+[atomic](https://zh.cppreference.com/w/cpp/atomic/atomic)
+从原理上说，就是包装了GCC的 语义簇
+```
+
+```
+
+### thread
+[thread](https://zh.cppreference.com/w/cpp/thread/thread) 构造函数为 callback f，后面的不定参数是f的参数，具体如下
+```
+template< class Function, class... Args > 
+explicit thread( Function&& f, Args&&... args );
+```
+
+* thread 不可复制，但是可以move
+* callback 可以是函数，类成员函数，跟bind的语义很类似。
+* 到线程函数的参数被移动或按值复制，若需要传递引用参数给线程函数，则必须包装它（例如用 std::ref 或 std::cref ）
+
+如下是一些示例
+
+```cpp
+void f2(int& n) {
+    for (int i = 0; i < 5; ++i) {
+        std::cout << "Thread 2 executing\n";
+        ++n;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+}
+int main() {
+  int n = 5;
+  std::thread t2(f2, std::ref(n));
+  t2.join();
+}
+```
+
+也可以定义线程数组，初始化的时候需要用到 move-assign 函数
+```cpp
+void f2(int& n) {
+  std::cout <<std::this_thread::get_id() <<"\t" <<n <<"\n";
+}
+void thread_array_init() {
+
+  std::thread task_array[4];
+  for(auto i = 0; i < 4; ++i) {
+    task_array[i] = std::thread(f2, std::ref(i));
+  }
+  for(auto i = 0; i < 4; ++i) {
+    task_array[i].join();
+  } 
+}
+void thread_vector_init() {
+  std::vector<std::thread> tasks;
+  for(auto i = 0; i < 4; ++i) {
+    tasks.push_back(std::thread(f2, std::ref(i)));
+  }
+  for (auto& th : tasks){
+    th.join();
+  }
+}
+```
+
+在linux下编译的时候，需要链接-lpthread，否则会报未实现的错误。
+
+
+从原理上说，基本是将pthread_x 的接口按照C++的方式包装了一层，在C++11以前也有很多的类似Thread类可以参考，标准只是更加规范化了而已。
+
+### lock
+#### mutex
+[mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 提供了对共享数据免受从多个线程同时访问的同步原语。
+
+通常不直接使用 std::mutex ，而通过 std::unique_lock 、 std::lock_guard 或 std::scoped_lock (C++17 起) 更加安全的方式管理其生命周期。
+```cpp
+std::mutex g_pages_mutex;
+{ 
+  std::lock_guard<std::mutex> guard(g_pages_mutex);
+  ...
+}
+```
+
+#### recursive_mutex
+
+[recursive_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_mutex) 递归互斥锁是一个可锁的对象，就像互斥一样，但是允许同一个线程获得对互斥对象的多个级别的所有权，是为了解决 一个线程中可能在执行中需要再次获得锁，可能会导致死锁。
+
+根据这个问题[stdmutex-vs-stdrecursive-mutex-as-class-member](https://stackoverflow.com/questions/14498892/stdmutex-vs-stdrecursive-mutex-as-class-member) 下的回复，如果出现该情况，需要重新设计你的类。
+
+这其实是
+
+#### shared_mutex
+[shared_mutex](https://zh.cppreference.com/w/cpp/thread/shared_mutex) 实际上是读写锁的封装，跟mutex一样，一般不直接使用它，通过 shared_lock 和  unique_lock 管理其周期。
+
+```cpp
+class ThreadSafeCounter {
+ public:
+  ThreadSafeCounter() = default;
+ 
+  // 多个线程/读者能同时读计数器的值。
+  unsigned int get() const {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    return value_;
+  }
+ 
+  // 只有一个线程/写者能增加/写线程的值。
+  void increment() {
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    value_++;
+  }
+ 
+  // 只有一个线程/写者能重置/写线程的值。
+  void reset() {
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    value_ = 0;
+  }
+ private:
+  mutable std::shared_mutex mutex_;
+  unsigned int value_ = 0;
+};
+```
+
+### timed_lock
+在lock的基础上，其有对应带超时版本的锁。
+
+[timed_mutex](https://zh.cppreference.com/w/cpp/thread/timed_mutex) 锁比较 mutex 锁多了两个成员函数try_lock_for 和 try_lock_until。
+区别在于try_lock_for 传递一个时间间隔，try_lock_until 传递一个未来的时间点。
+```cpp
+std::timed_mutex mtx;
+
+void fireworks () {
+  // waiting to get a lock: each thread prints "-" every 200ms:
+  while (!mtx.try_lock_for(std::chrono::milliseconds(2))) {
+    std::cout << "-";
+  }
+  // got a lock! - wait for 1s, then this thread prints "*"
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::cout << "*\n";
+  mtx.unlock();
+}
+
+```
+[shared_timed_mutex ](https://zh.cppreference.com/w/cpp/thread/shared_timed_mutex) 和
+[recursive_timed_mutex](https://zh.cppreference.com/w/cpp/thread/recursive_timed_mutex) 类似，不再赘述。
+### lock-guard
+其实我们在上面mutex的例子中已经介绍了类型和用法。
+主要有
+[lock_guard](https://zh.cppreference.com/w/cpp/thread/lock_guard) 实现了 [BasicLockable](https://zh.cppreference.com/w/cpp/named_req/BasicLockable)，即lock & unlock接口，除了构造函数外没有其他member function，使用起来比较简单，初始化的时候必须bind一个mutex。
+
+[unique_lock](https://zh.cppreference.com/w/cpp/thread/unique_lock) 除了lock_guard的功能外，提供了更多的member_function，如延迟锁定、锁定的有时限尝试、递归锁定、所有权转移和与条件变量一同使用，需要付出更多的时间、性能成本。
+与lock_guard的区别[参考](https://stackoverflow.com/questions/20516773/stdunique-lockstdmutex-or-stdlock-guardstdmutex)
+[scoped_lock](https://zh.cppreference.com/w/cpp/thread/scoped_lock) 接收多个mutex对象，解决获取多个对象的问题，等同于多个std::lock语句
+
+```cpp
+std::mutex mtx;
+void print_block (int n, char c) {
+    // unique_lock有多组构造函数, 
+    // 这里std::defer_lock不设置锁状态
+    std::unique_lock<std::mutex> my_lock (mtx, std::defer_lock);
+    //尝试加锁, 如果加锁成功则执行
+    //(适合定时执行一个job的场景, 
+    // 一个线程执行就可以, 可以用更新时间戳辅助)
+    if(my_lock.try_lock()){
+    }
+}
+```
+scoped_lock是示例
+```cpp
+std::mutex mtx1;
+std::mutex mtx2;
+{
+  std::scoped_lock<std::mutex> lock(mtx1, mtx2);
+  /* 等价于
+  {
+    std::lock_guard<std::mutex> lk1(mtx1, std::adopt_lock);
+    std::lock_guard<std::mutex> lk2(mtx2, std::adopt_lock);
+  }
+  */
+}
+
+```
+
+### future | promise
+
+[promise](https://zh.cppreference.com/w/cpp/thread/promise)
+
+### clock
+
+
+
+
 ## 参考文档
 http://www.umich.edu/~eecs381/handouts/handouts.html
