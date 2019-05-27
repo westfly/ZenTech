@@ -346,9 +346,14 @@ C++ 中关于并发多线程的部分，主要包含 \<thread>、\<mutex>、\<at
 
 #### 内存模型
 
+[如何理解 C++11 的六种 memory order？](https://www.zhihu.com/question/24301047)
+
+
 
 [atomic](https://zh.cppreference.com/w/cpp/atomic/atomic)
 从原理上说，就是包装了GCC的 语义簇
+
+
 ```
 
 ```
@@ -510,7 +515,7 @@ void fireworks () {
 [unique_lock](https://zh.cppreference.com/w/cpp/thread/unique_lock) 除了lock_guard的功能外，提供了更多的member_function，如延迟锁定、锁定的有时限尝试、递归锁定、所有权转移和与条件变量一同使用，需要付出更多的时间、性能成本。
 与lock_guard的区别[参考](https://stackoverflow.com/questions/20516773/stdunique-lockstdmutex-or-stdlock-guardstdmutex)
 
-[scoped_lock](https://zh.cppreference.com/w/cpp/thread/scoped_lock) 接收多个mutex对象，解决获取多个对象的问题，等同于多个std::lock语句
+[scoped_lock](https://zh.cppreference.com/w/cpp/thread/scoped_lock) 接收多个mutex对象，解决获取多个对象的问题，等同于多个std::lock_guard 语句，能够有效的避免因为释放顺序而导致的死锁问题。
 
 ```cpp
 std::mutex mtx;
@@ -543,8 +548,41 @@ std::mutex mtx2;
 
 ### 6.6 future | promise
 
-[promise](https://zh.cppreference.com/w/cpp/thread/promise)
+[std::promise](https://en.cppreference.com/w/cpp/thread/promise) 对象可以保存某一类型 T 的值，该值可被 [std::future](https://en.cppreference.com/w/cpp/thread/future) 对象读取（可能在另外一个线程中），因此 promise 也提供了一种线程同步的手段。
 
+
+```cpp
+std::promise<int> prom;
+std::future<int> fut = prom.get_future();
+```
+
+```cpp
+#include <future>
+#include <iostream>
+
+bool is_prime(int x)
+{
+  for (int i=0; i<x; i++)
+  {
+    if (x % i == 0)
+      return false;
+  }
+  return true;
+}
+
+int main()
+{
+  std::future<bool> fut = std::async(is_prime, 700020007);
+  std::cout << "please wait";
+  std::chrono::milliseconds span(100);
+  while (fut.wait_for(span) != std::future_status::ready)
+    std::cout << ".";
+  std::cout << std::endl;
+  bool ret = fut.get();
+  std::cout << "final result: " << ret << std::endl;
+  return 0;
+}
+```
 
 
 
