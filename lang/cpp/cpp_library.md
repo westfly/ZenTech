@@ -428,6 +428,7 @@ void thread_vector_init() {
 
 
 #### 6.3.1 mutex
+
 [mutex](https://zh.cppreference.com/w/cpp/thread/mutex) 提供了对共享数据免受从多个线程同时访问的同步原语。
 
 通常不直接使用 std::mutex ，而通过 std::unique_lock 、 std::lock_guard 或 std::scoped_lock (C++17 起) 更加安全的方式管理其生命周期。
@@ -446,6 +447,7 @@ std::mutex g_pages_mutex;
 根据这个问题[stdmutex-vs-stdrecursive-mutex-as-class-member](https://stackoverflow.com/questions/14498892/stdmutex-vs-stdrecursive-mutex-as-class-member) 下的回复，如果出现该情况，需要重新设计你的类。
 
 #### 6.3.3 shared_mutex
+
 [shared_mutex](https://zh.cppreference.com/w/cpp/thread/shared_mutex) 实际上是读写锁的封装，跟mutex一样，一般不直接使用它，通过 shared_lock 和  unique_lock 管理其周期。
 
 ```cpp
@@ -502,10 +504,12 @@ void fireworks () {
 ### 6.5 lock-guard
 
 在上面mutex的例子中已经介绍了用于管理锁声明周期的Guard，利用到了C++的 RAII，主要有如下类型
+
 [lock_guard](https://zh.cppreference.com/w/cpp/thread/lock_guard) 实现了 [BasicLockable](https://zh.cppreference.com/w/cpp/named_req/BasicLockable)，即lock & unlock接口，除了构造函数外没有其他member function，使用起来比较简单，初始化的时候必须bind一个mutex。
 
 [unique_lock](https://zh.cppreference.com/w/cpp/thread/unique_lock) 除了lock_guard的功能外，提供了更多的member_function，如延迟锁定、锁定的有时限尝试、递归锁定、所有权转移和与条件变量一同使用，需要付出更多的时间、性能成本。
 与lock_guard的区别[参考](https://stackoverflow.com/questions/20516773/stdunique-lockstdmutex-or-stdlock-guardstdmutex)
+
 [scoped_lock](https://zh.cppreference.com/w/cpp/thread/scoped_lock) 接收多个mutex对象，解决获取多个对象的问题，等同于多个std::lock语句
 
 ```cpp
