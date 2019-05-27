@@ -52,6 +52,14 @@ map 和set底层结构是rbtree，插入和查找的效率不同
 ### 1.4 std::variant
 std::variant是类型安全的联合体，是一个加强版的 union，variant支持更加复杂的数据类型，例如map，string等等。
 
+std::variant 是 C++17 中，一个新加入标准函式库的 template 容器；他的概念基本上是和 union（参考）一样，是一个可以用来储存多种型别的容器。
+
+比如说：
+std::variant<int, double> v;
+
+就代表 v 这个变数，可以用来储存 int 或 double 的变量，variant 内部自己会去记录相关的信息。
+而和 union 不同的地方，variant 也是 type-safe 的，再加上有许多函式可以搭配使用，所以在使用上应该算是相对安全；另外也由于他是标准函式库的 template class，在使用时不需要另外去宣告一个新的型别。
+
 ### 1.4 std::optional
 
 [std::optional](https://zh.cppreference.com/w/cpp/utility/optional) 是一个工具类，但是也可以看做是一个容器，管理一个可选的容纳值，即可以存在也可以不存在的值。在C++17中引进。
@@ -77,7 +85,8 @@ if (name) {
 ### std::any
 std::any是一个类型安全的可以保存任何值的容器
 
-
+##  std::function ##
+C++11 std::function 是一种通用、多态的函数封装。
 ### std::string_view
 
 c++17中的string_view 和 boost类似，string_view可以理解成原始字符串一个只读引用。 string_view 本身没有申请额外的内存来存储原始字符串的data，仅仅保存了原始字符串地址和长度等信息。 在很多情况下，我们只是临时处理字符串，本不需要对原始字符串的一份拷贝。

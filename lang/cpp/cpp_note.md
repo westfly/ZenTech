@@ -1,9 +1,9 @@
 cpp 学习笔记
 ------
 根据
-[聊聊C++11](https://www.bilibili.com/video/av7701532)的内容整理而来
+[聊聊C++11](https://www.bilibili.com/video/av7701532) 的内容整理而来
 新的特性
-## 1. initializer_list##
+## 1. initializer_list ##
 
 ```
 // c++03
@@ -116,7 +116,7 @@ class Dog {
 };
 ```
 
-## 9. override (for vritual funciton)##
+## 9. override (for vritual funciton) ##
 避免 inavertently（不经意间的）在子类中创建新的函数
 用于给编译器一个参考
 ```cpp
@@ -264,7 +264,7 @@ auto f = [](int x, int y) {return x + y;}
 f(3,4)
 map(f, vector);
 ```
-## 16. 自定字符常量##
+## 16. 自定字符常量 ##
 
 常量有如下四种
 1. 整形 4l 4UL
@@ -359,8 +359,10 @@ public:
     using Base::Base; // 继承构造
 };
 ```
-##20 函数对象
+## 20 函数对象 ##
+
 ###20.1 std::funciton
+
 C++11 std::function 是一种通用、多态的函数封装， 它的实例可以对任何可以调用的目标实体进行存储、复制和调用操作， 它也是对 C++中 现有的可调用实体的一种类型安全的包裹（ 相对来说， 函数指针的调用不是类型安全的） ， 换句话说， 就是函数的容器 。 
 ```cpp
 int foo( int para) {
@@ -386,7 +388,7 @@ std::cout << bindFoo(1)<< std::endl;
 
 
 
-##21. 模板增强
+##21. 模板增强 ##
 
 ###21.1 外部模板
 ###21.2 默认模板参数
@@ -413,17 +415,7 @@ class RequireMagic;
 
 
 此处的暂时只要求看懂代码就行，后面会补充解包模板参数的方法等示例
-## 21 std::function
-C++11 std::function 是一种通用、多态的函数封装。
-## 22 std::variant
 
-std::variant 是 C++17 中，一个新加入标准函式库的 template 容器；他的概念基本上是和 union（参考）一样，是一个可以用来储存多种型别的容器。
-
-比如说：
-std::variant<int, double> v;
-
-就代表 v 这个变数，可以用来储存 int 或 double 的变量，variant 内部自己会去记录相关的信息。
-而和 union 不同的地方，variant 也是 type-safe 的，再加上有许多函式可以搭配使用，所以在使用上应该算是相对安全；另外也由于他是标准函式库的 template class，在使用时不需要另外去宣告一个新的型别。
 
 
 ##右值引用

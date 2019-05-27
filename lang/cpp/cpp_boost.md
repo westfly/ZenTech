@@ -1,5 +1,13 @@
 boost 学习指北
 ---
+
+## 编译boost库
+
+下载最新的boost，解压到一定的目录。
+因为boost依赖于b2编译，需要执行 bootstrap.sh 生成b2工具。
+
+https://stackoverflow.com/questions/5346454/building-boost-with-different-gcc-version 可以解决非系统GCC编译问题。
+
 ## 时间处理
 
 
